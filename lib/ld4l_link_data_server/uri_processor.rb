@@ -15,7 +15,15 @@ module Ld4lLinkDataServer
     }
     WHERE { 
       ?uri ?p ?o . 
-    } LIMIT 10
+    }
+    END
+    QUERY_INCOMING_PROPERTIES = <<-END
+    CONSTRUCT {
+      ?s ?p ?uri
+    }
+    WHERE { 
+      ?s ?p ?uri . 
+    }
     END
     def initialize(ts, files, report, uri)
       @ts = ts
@@ -24,17 +32,37 @@ module Ld4lLinkDataServer
       @uri = uri
     end
 
-    def run()
+    def uri_is_acceptable
+      @uri.start_with?(@files.prefix)
+    end
+
+    def build_the_graph
       @graph = RDF::Graph.new
       @graph << QueryRunner.new(QUERY_OUTGOING_PROPERTIES).bind_uri('uri', @uri).construct(@ts)
+      @graph << QueryRunner.new(QUERY_INCOMING_PROPERTIES).bind_uri('uri', @uri).construct(@ts)
+    end
+
+    def write_it_out
+      if @files.exists?(@uri)
+        obj = @files.get(@uri)
+      else
+        obj = @files.mk(@uri)
+      end
+
+      path = File.expand_path('linked_data.ttl', @files.path_for(@uri))
+      RDF::Writer.open(path) do |writer|
+        writer << @graph
+      end
+    end
+
+    def run()
+      if (uri_is_acceptable)
+        build_the_graph
+        write_it_out
+        @report.wrote_it(@uri, @graph)
+      else
+        @report.bad_uri(@uri)
+      end
     end
   end
 end
-
-=begin
-UriProcessor
-  Issue the queries for the URI
-  Build the graph
-  Write it to PairTree.
-  What sort of errors might be venial?
-=end

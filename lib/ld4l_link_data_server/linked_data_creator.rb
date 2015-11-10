@@ -15,7 +15,9 @@ Usage: ld4l_create_lod_files <target_dir> [RESTART] <report_file> [REPLACE]
 
 module Ld4lLinkDataServer
   class LinkedDataCreator
-    USAGE_TEXT = "Usage: ld4l_create_lod_files <target_dir> [RESTART] <report_file> [REPLACE]"
+    USAGE_TEXT = 'Usage: ld4l_create_lod_files <target_dir> [RESTART] <report_file> [REPLACE]'
+    BATCH_SIZE = 1000
+    PAIRTREE_PREFIX = 'http://ld4l'
     def process_arguments(args)
       @restart = args.delete('RESTART')
       replace_report = args.delete('REPLACE')
@@ -41,7 +43,7 @@ module Ld4lLinkDataServer
     end
 
     def connect_pairtree
-      @files = Pairtree.at(@pair_tree_base, :create => true)
+      @files = Pairtree.at(@pair_tree_base, :prefix => PAIRTREE_PREFIX, :create => true)
       @report.logit("Connected to pairtree at #{@pair_tree_base}")
     end
 
@@ -57,7 +59,7 @@ module Ld4lLinkDataServer
     end
 
     def iterate_through_uris
-      uris = UriDiscoverer.new(@ts, @bookmark, 1000, @report)
+      uris = UriDiscoverer.new(@ts, @bookmark, BATCH_SIZE, @report)
 
       puts "Beginning processing. Press ^c to interrupt."
       uris.each do |uri|
@@ -88,7 +90,7 @@ module Ld4lLinkDataServer
     end
 
     def report
-      bogus "report"
+      @report.stats
     end
 
     def setup()

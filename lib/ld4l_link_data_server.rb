@@ -5,6 +5,7 @@ require 'triple_store_controller'
 
 require 'pairtree'
 require 'rdf'
+require 'rdf/raptor'
 
 require "ld4l_link_data_server/bookmark"
 require "ld4l_link_data_server/linked_data_creator"
