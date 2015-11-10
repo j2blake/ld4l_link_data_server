@@ -21,10 +21,11 @@ module Ld4lLinkDataServer
         ?uri ?p ?o . 
       }
     END
-    def initialize(ts, bookmark, limit)
+    def initialize(ts, bookmark, limit, report)
       @ts = ts
       @limit = limit
       @bookmark = bookmark
+      @report = report
       @uris = []
     end
 
@@ -43,10 +44,11 @@ module Ld4lLinkDataServer
 
     def replenish_buffer()
       @uris = find_uris("%s OFFSET %d LIMIT %d" % [QUERY_URIS, @bookmark.offset, @limit])
+      @report.logit("Find URIs:, offset: %d, limit: %d, found: %d" % [@bookmark.offset, @limit, @uris.size])
     end
 
     def find_uris(query)
-      QueryRunner.new(query).execute(@ts).map { |r| r['uri'] }
+      QueryRunner.new(query).select(@ts).map { |r| r['uri'] }
     end
 
   end

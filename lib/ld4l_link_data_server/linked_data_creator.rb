@@ -37,12 +37,12 @@ module Ld4lLinkDataServer
       @ts = TripleStoreDrivers.selected
 
       raise IllegalStateError.new("#{@ts} is not running") unless @ts.running?
-      logit("Connected to triple-store: #{@ts}")
+      @report.logit("Connected to triple-store: #{@ts}")
     end
 
     def connect_pairtree
       @files = Pairtree.at(@pair_tree_base, :create => true)
-      logit("Connected to pairtree at #{@pair_tree_base}")
+      @report.logit("Connected to pairtree at #{@pair_tree_base}")
     end
 
     def initialize_bookmark
@@ -50,7 +50,7 @@ module Ld4lLinkDataServer
     end
 
     def iterate_through_uris
-      uris = UriDiscoverer.new(@ts, @bookmark, 1000) 
+      uris = UriDiscoverer.new(@ts, @bookmark, 1000, @report)
       begin
         puts "Beginning processing. Press ^c to interrupt."
         uris.each do |uri|
@@ -61,46 +61,32 @@ module Ld4lLinkDataServer
         @bookmark.persist
         @report.summarize(@bookmark, :interrupted)
       end
-      logit("Complete")
+      @report.logit("Complete")
     end
 
     def report
       bogus "report"
     end
 
-    def logit(message)
-      m = "#{Time.new.strftime('%Y-%m-%d %H:%M:%S')} #{message}"
-      puts m
-      @report.puts(m)
+    def setup()
+      process_arguments(ARGV)
+      connect_triple_store
+      connect_pairtree
+      initialize_bookmark
     end
 
     def run
       begin
-        process_arguments(ARGV)
-
-        begin
-          connect_triple_store
-          connect_pairtree
-          initialize_bookmark
-
-          iterate_through_uris
-          report
-        ensure
-          @report.close if @report
-        end
+        setup
+        iterate_through_uris
+        report
       rescue UserInputError, IllegalStateError
         puts
         puts "ERROR: #{$!}"
         puts
+      ensure
+        @report.close if @report
       end
     end
   end
 end
-
-=begin
-Loop while get_next_uri
-  UriProcessor.new(ts, pairtree, uri).run
-  Rescue Interrupt
-  Rescue VenialError
-get_next_uri handles the bookmark the queries and the iteration through the results.
-=end
