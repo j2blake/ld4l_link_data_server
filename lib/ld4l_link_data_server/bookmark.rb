@@ -14,7 +14,6 @@ module Ld4lLinkDataServer
     attr_reader :start_offset
     def initialize(pairtree, restart)
       @path = File.expand_path(FILE_NAME, pairtree.path)
-      bogus "path to bookmark file #{@path}"
 
       if File.exist?(@path) && !restart
         @offset = load
@@ -29,7 +28,6 @@ module Ld4lLinkDataServer
     def load()
       File.open(@path) do |f|
         map = JSON.load(f, nil, :symbolize_names => true)
-        bogus "The map: #{map}"
         map[:offset]
       end
     end
@@ -37,7 +35,6 @@ module Ld4lLinkDataServer
     def persist()
       File.open(@path, 'w') do |f|
         map = {:offset => @offset}
-        bogus "Storing: #{map}"
         JSON.dump(map, f)
       end
     end

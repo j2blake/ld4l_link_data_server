@@ -49,19 +49,42 @@ module Ld4lLinkDataServer
       @bookmark = Bookmark.new(@files, @restart)
     end
 
+    def trap_control_c
+      @interrupted = false
+      trap("SIGINT") do
+        @interrupted = true
+      end
+    end
+
     def iterate_through_uris
       uris = UriDiscoverer.new(@ts, @bookmark, 1000, @report)
-      begin
-        puts "Beginning processing. Press ^c to interrupt."
-        uris.each do |uri|
-          UriProcessor.new(@ts, @files, @report, uri).run
+
+      puts "Beginning processing. Press ^c to interrupt."
+      uris.each do |uri|
+        if @interrupted
+          process_interruption
+          break
+        else
+          begin
+            UriProcessor.new(@ts, @files, @report, uri).run
+          rescue
+            process_exception
+            break
+          end
         end
-        @report.summarize(@bookmark, :complete)
-      rescue Interrupt
-        @bookmark.persist
-        @report.summarize(@bookmark, :interrupted)
       end
+      @report.summarize(@bookmark, :complete)
       @report.logit("Complete")
+    end
+
+    def process_interruption
+      @bookmark.persist
+      @report.summarize(@bookmark, :interrupted)
+    end
+
+    def process_exception
+      @bookmark.persist
+      @report.summarize(@bookmark, :exception)
     end
 
     def report
@@ -73,6 +96,7 @@ module Ld4lLinkDataServer
       connect_triple_store
       connect_pairtree
       initialize_bookmark
+      trap_control_c
     end
 
     def run

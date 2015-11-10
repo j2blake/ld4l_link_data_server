@@ -36,8 +36,12 @@ module Ld4lLinkDataServer
       how_many = last - first
       if status == :complete
         logit("Generated for URIs from offset %d to %d: processed %d URIs." % [first, last, how_many])
-      else
+      elsif status == :interrupted
         logit("Interrupted with offset %d -- started at %d: processed %d URIs." % [last, first, how_many])
+      else
+        logit("Error with offset %d -- started at %d: processed %d URIs." % [last, first, how_many])
+        logit($!)
+        logit($!.backtrace.join("\n"))
       end
     end
 
