@@ -1,0 +1,28 @@
+#! /usr/bin/env ruby
+
+=begin rdoc
+--------------------------------------------------------------------------------
+
+Start the server. Provide the location of the pairtree directory, and a place
+to write any report.
+
+--------------------------------------------------------------------------------
+
+Usage: ld4l_create_lod_files <target_dir> <report_file> [REPLACE]
+
+--------------------------------------------------------------------------------
+=end
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+#
+# ---------------------------------------------------------
+# MAIN ROUTINE
+# ---------------------------------------------------------
+#
+
+require 'pairtree'
+require 'sinatra'
+
+require 'ld4l_server/process_arguments'
+require 'ld4l_server/paths'

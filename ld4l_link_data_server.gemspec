@@ -33,4 +33,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "pairtree"
   spec.add_runtime_dependency "rdf"
   spec.add_runtime_dependency "rdf-raptor"
+  spec.add_runtime_dependency "sinatra"
 end

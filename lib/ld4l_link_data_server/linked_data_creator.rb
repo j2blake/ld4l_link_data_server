@@ -26,7 +26,7 @@ module Ld4lLinkDataServer
 
       @pair_tree_base = File.expand_path(args[0])
 
-      raise UserInputError.new("#{args[1]} already exists -- specify REPLACE") if File.exist?(args[0]) unless replace_report
+      raise UserInputError.new("#{args[1]} already exists -- specify REPLACE") if File.exist?(args[1]) unless replace_report
       raise UserInputError.new("Can't create #{args[1]}: no parent directory.") unless Dir.exist?(File.dirname(args[1]))
       @report = Report.new(File.expand_path(args[1]))
     end
