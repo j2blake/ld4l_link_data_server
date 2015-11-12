@@ -75,3 +75,49 @@ More appropriate queries: titles as well as labels, etc.
 	Look to the indexer for these?
 	Apply different queries to different classes of object?
 
+-------------------------
+Multiple namespaces
+-------------------------
+
+The final namespaces will be something like:
+  http://draft.ld4l.org/cornell/
+  http://draft.ld4l.org/harvard/
+  http://draft.ld4l.org/stanford/
+  
+Three instances of the app, three pairtree systems, pass args on startup
+	Pairtree: prefix is http://draft.ld4l.org/cornell/, so only the localname
+In config.ru:
+	run AwesomeApp.new(app, bootstrap: true)
+	http://stackoverflow.com/questions/9657202/pass-arguments-to-new-sinatra-app
+	
+	map('/example') { run ExampleController }
+    map('/') { run ApplicationController }
+    https://www.safaribooksonline.com/library/view/sinatra-up-and/9781449306847/ch04.html
+    
+But then how do we create the three pairtree systems?
+
+Maybe one pairtree, prefix is http://draft.ld4l.org/ and the app uses a parameter to know its context path
+
+The nice thing about three apps is that we can still redirect based on localname
+	(can we? Or do we need an absolute redirect mechanism?)
+	Needs to be absolute but we can do that.
+	
+-----------
+So, in summary
+-----------
+The prefix approach
+	Generator works as now, but with a required prefix as an argument. Only generates files for URIs that use the prefix
+		Give it http://draft.ld4l.org/, and it will take it from there:
+		Point out: this is not a namespace, this is a prefix.
+	One pairtree, with paths that look like: co/rn/el/l-/00/00/...
+	App can determine context from  URI, but should it have to?
+The namespace approach:
+	Generator works with namespace as an argument. 
+		Must be run three times with three different namespaces to create three pairtrees
+			paths look like 00/00/...
+	Three apps serving the three pairtrees.
+		How do we do redirects? We still get the full URL
+Mix and match:
+	Generator works with the prefix approach.
+	3 servers with the namespace approach.
+		

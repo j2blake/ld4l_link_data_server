@@ -30,8 +30,13 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec"
 
+  # server and generator
   spec.add_runtime_dependency "pairtree"
   spec.add_runtime_dependency "rdf"
   spec.add_runtime_dependency "rdf-raptor"
+  
+  #server only
   spec.add_runtime_dependency "sinatra"
+  spec.add_runtime_dependency "rdf-rdfxml"
+  spec.add_runtime_dependency "rdf-json"
 end

@@ -77,14 +77,22 @@ helpers do
   end
 
   def display(localname, format)
-#    obj = $files.get('http://ld4l.harvard.edu/' + localname)
-#    path = File.expand_path('linked_data.ttl', @files.path_for(@uri))
-#    RDF::Writer.open(path) do |writer|
-#      writer << @graph
-#    end
+    uri = "http://ld4l.harvard.edu/" + localname
 
-    # read it, parse it to a graph, add the metadata, write it in the desired format, apply the content-type header
-    "The RDF for %s in %s" % [localname, format]
+    path = File.expand_path('linked_data.ttl', $files.path_for(uri))
+    @graph = RDF::Graph.new
+    @graph.load(path)
+
+    case format
+    when 'n3', 'ttl'
+      RDF::Raptor::Turtle::Writer.dump(@graph)
+    when 'nt'
+      RDF::Raptor::NTriples::Writer.dump(@graph)
+    when 'rj'
+      RDF::JSON::Writer.dump(@graph)
+    else # 'rdf'
+      RDF::RDFXML::Writer.dump(@graph)
+    end
   end
 
   def create_headers(format)
