@@ -7,28 +7,29 @@ get '/termsOfUse' do
 end
 
 get '/*' do
-  request_type, localname, format = parse_request
-  case request_type
+  tokens = parse_request
+#  logger.info ">>>>>>>PARSED #{tokens.inspect}"
+  case tokens[:request_type]
   when :uri
-    redirect url_to_display(localname, format), 303
+    redirect url_to_display(tokens), 303
   when :display_url
-    [200, create_headers(format), display(localname, format)]
+    [200, create_headers(tokens), display(tokens)]
   when :no_such_individual
-    [404, no_such_individual(localname)]
+    [404, no_such_individual(tokens)]
   when :no_such_format
-    [404, no_such_format(format)]
+    [404, no_such_format(tokens)]
   else
-    [404, "BAD REQUEST: #{request.path}, type=#{request_type}, localname=#{localname}, format=#{format}"]
+    [404, "BAD REQUEST: #{request.path} ==> #{tokens.inspect}"]
   end
 end
 
 helpers do
   def ext_to_mime
     {
-      'rdf' => 'application/rdf+xml',
-      'nt' => 'application/n-triples',
       'ttl' => 'text/turtle',
       'n3' => 'text/n3',
+      'nt' => 'application/n-triples',
+      'rdf' => 'application/rdf+xml',
       'rj' => 'application/rdf+json'
     }
   end
@@ -38,20 +39,28 @@ helpers do
   end
 
   def parse_request
-    if request.path =~ %r{^/([^/]+)/\1\.(\w+)$} # /localname/localname.format
-      localname = $1
-      format = $2
-      return [:no_such_individual, localname, format] unless known_individual(localname)
-      return [:no_such_format, localname, format] unless recognized_format(format)
-      [:display_url, localname, format]
-    elsif request.path =~ %r{^/([^/]+)$} # No internal slash
-      localname = $1
-      format = test_accept_header
-      return [:no_such_individual, localname, format] unless known_individual(localname)
-      return [:no_such_format, localname, format] unless recognized_format(format)
-      [:uri, localname, format]
+    if request.path =~ %r{^/([^/]+/)?([^/]+)\.(\w+)$} # /context/localname.format
+      tokens = {:context => $1, :localname => $2, :format => $3}
+    elsif request.path =~ %r{^/([^/]+/)?([^/]+)$} # /context/localname
+      tokens = {:context => $1, :localname => $2}
     else
-      [:garbage, "", ""]
+      tokens = {:localname => request.path.sub(%r{^/}, '')}
+    end
+
+    tokens[:uri] = "%s%s%s" % [$namespace, tokens[:context], tokens[:localname]]
+
+    if known_individual(tokens)
+      if tokens[:format]
+        if recognized_format(tokens)
+          return tokens.merge(:request_type => :display_url)
+        else
+          return tokens.merge(:request_type => :no_such_format)
+        end
+      else
+        return tokens.merge(:request_type => :uri, :format => test_accept_header)
+      end
+    else
+      return tokens.merge(:request_type => :no_such_individual)
     end
   end
 
@@ -60,30 +69,28 @@ helpers do
     if mime && mime_to_ext.has_key?(mime)
       mime_to_ext[mime]
     else
-      'rdf'
+      'ttl'
     end
   end
 
-  def known_individual(localname)
-    $files.exists?('http://ld4l.harvard.edu/' + localname)
+  def known_individual(tokens)
+    $files.exists?(tokens[:uri])
   end
 
-  def recognized_format(format)
-    ext_to_mime.has_key?(format)
+  def recognized_format(tokens)
+    ext_to_mime.has_key?(tokens[:format])
   end
 
-  def url_to_display(localname, format)
-    "/%s/%s.%s" % [localname, localname, format]
+  def url_to_display(tokens)
+    "%s/%s.%s" % tokens.values_at(:context, :localname, :format)
   end
 
-  def display(localname, format)
-    uri = "http://ld4l.harvard.edu/" + localname
-
-    path = File.expand_path('linked_data.ttl', $files.path_for(uri))
+  def display(tokens)
+    path = File.expand_path('linked_data.ttl', $files.path_for(tokens[:uri]))
     @graph = RDF::Graph.new
     @graph.load(path)
 
-    case format
+    case tokens[:format]
     when 'n3', 'ttl'
       RDF::Raptor::Turtle::Writer.dump(@graph)
     when 'nt'
@@ -95,15 +102,15 @@ helpers do
     end
   end
 
-  def create_headers(format)
-    {"Content-Type" => ext_to_mime[format]}
+  def create_headers(tokens)
+    {"Content-Type" => ext_to_mime[tokens[:format]]}
   end
 
-  def no_such_individual(localname)
-    "No such individual #{localname}"
+  def no_such_individual(tokens)
+    "No such individual #{tokens[:uri]}"
   end
 
-  def no_such_format(format)
-    "No such format #{format}"
+  def no_such_format(tokens)
+    "No such format #{tokens[:format]}"
   end
 end

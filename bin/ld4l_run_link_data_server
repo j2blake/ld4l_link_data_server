@@ -4,11 +4,16 @@
 --------------------------------------------------------------------------------
 
 Start the server. Provide the location of the pairtree directory, and a place
-to write any report.
+to write any report. Optionally provide the namespace of the stored data URIs, 
+if it is different from the actual host:port.
+
+Note that the namespace should end with a '/', and does not include the 
+context path. 
 
 --------------------------------------------------------------------------------
 
-Usage: ld4l_create_lod_files <target_dir> <report_file> [REPLACE]
+Usage:   ld4l_create_lod_files <target_dir> <report_file> <pairtree_prefix> [namespace] [REPLACE]
+Example: ld4l_create_lod_files files report.txt http://draft.ld4l.org/ http://draft.ld4l.org/ [REPLACE]
 
 --------------------------------------------------------------------------------
 =end
