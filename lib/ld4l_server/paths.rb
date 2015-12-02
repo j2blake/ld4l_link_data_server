@@ -11,7 +11,8 @@ get '/*' do
 #  logger.info ">>>>>>>PARSED #{tokens.inspect}"
   case tokens[:request_type]
   when :uri
-    redirect url_to_display(tokens), 303
+    headers 'Vary' => 'Accept'
+    redirect url_to_display(tokens), 303 
   when :display_url
     [200, create_headers(tokens), display(tokens)]
   when :no_such_individual
@@ -103,7 +104,7 @@ helpers do
   end
 
   def create_headers(tokens)
-    {"Content-Type" => ext_to_mime[tokens[:format]]}
+    {"Content-Type" => ext_to_mime[tokens[:format]] + ';charset=utf-8'}
   end
 
   def no_such_individual(tokens)
