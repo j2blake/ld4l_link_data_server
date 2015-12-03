@@ -1,5 +1,5 @@
-get '/' do
-  'This is the home page. Describe what they should have done instead. <a href="./termsOfUse">Try the terms of use<a>'
+get %r{^/(cornell|stanford|harvard)?$} do |univ|
+  show_home_page(univ)
 end
 
 get '/termsOfUse' do
@@ -8,11 +8,11 @@ end
 
 get '/*' do
   tokens = parse_request
-#  logger.info ">>>>>>>PARSED #{tokens.inspect}"
+  #  logger.info ">>>>>>>PARSED #{tokens.inspect}"
   case tokens[:request_type]
   when :uri
     headers 'Vary' => 'Accept'
-    redirect url_to_display(tokens), 303 
+    redirect url_to_display(tokens), 303
   when :display_url
     [200, create_headers(tokens), display(tokens)]
   when :no_such_individual
@@ -27,16 +27,72 @@ end
 helpers do
   def ext_to_mime
     {
-      'ttl' => 'text/turtle',
+      'html' => 'text/html',
       'n3' => 'text/n3',
       'nt' => 'application/n-triples',
       'rdf' => 'application/rdf+xml',
-      'rj' => 'application/rdf+json'
+      'rj' => 'application/rdf+json',
+      'ttl' => 'text/turtle'
     }
   end
 
   def mime_to_ext
     ext_to_mime.invert
+  end
+
+  def void_prefixes
+    {
+      ''.to_sym => RDF::URI('http://draft.ld4l.org/') ,
+      :dcterms => RDF::URI('http://purl.org/dc/terms/') ,
+      :foaf => RDF::URI('http://xmlns.com/foaf/0.1/') ,
+      :rdfs => RDF::URI('http://www.w3.org/2000/01/rdf-schema#') ,
+      :void => RDF::URI('http://rdfs.org/ns/void#') ,
+      :xsd => RDF::URI('http://www.w3.org/2001/XMLSchema#') ,
+    }
+  end
+
+  def ld4l_prefixes
+    {
+      :annot => RDF::URI('http://www.w3.org/ns/oa#'),
+      :dcterms => RDF::URI('http://purl.org/dc/terms/') ,
+      :fast => RDF::URI('http://id.worldcat.org/fast/') ,
+      :foaf => RDF::URI('http://xmlns.com/foaf/0.1/') ,
+      :ld4lbib => RDF::URI('http://ld4l.org/ontology/bib/'),
+      :ld4lcornell => RDF::URI('http://draft.ld4l.org/cornell/'),
+      :ld4lharvard => RDF::URI('http://draft.ld4l.org/harvard/'),
+      :ld4lstanford => RDF::URI('http://draft.ld4l.org/stanford/'),
+      :locclass => RDF::URI('http://id.loc.gov/authorities/classification/'),
+      :mads => RDF::URI('http://www.loc.gov/mads/rdf/v1#'),
+      :owl => RDF::URI('http://www.w3.org/2002/07/owl#'),
+      :oclc => RDF::URI('http://www.worldcat.org/oclc/'),
+      :prov => RDF::URI('http://www.w3.org/ns/prov#'),
+      :rdfs => RDF::URI('http://www.w3.org/2000/01/rdf-schema#') ,
+      :skos => RDF::URI('http://www.w3.org/2004/02/skos/core#') ,
+      :void => RDF::URI('http://rdfs.org/ns/void#'),
+    }
+  end
+
+  def show_home_page(univ)
+    graph = get_void_graph(univ)
+    mime_ext = preferred_format('html')
+    if mime_ext == 'html'
+      merge_graph_into_home_page_template(univ, graph)
+    else
+      dump_graph(graph, mime_ext, void_prefixes)
+    end
+  end
+
+  def get_void_graph(univ)
+    filename = univ ? ("void_#{univ}.ttl") : "void.ttl"
+    path = File.expand_path(filename, $files.path)
+    graph = RDF::Graph.new
+    graph.load(path)
+    graph
+  end
+
+  def merge_graph_into_home_page_template(univ, graph)
+    template = univ ? "dataset_#{univ}".to_sym : :dataset
+    erb template, :locals => {:graph => graph.to_hash}
   end
 
   def parse_request
@@ -58,19 +114,21 @@ helpers do
           return tokens.merge(:request_type => :no_such_format)
         end
       else
-        return tokens.merge(:request_type => :uri, :format => test_accept_header)
+        return tokens.merge(:request_type => :uri, :format => preferred_format('ttl'))
       end
     else
       return tokens.merge(:request_type => :no_such_individual)
     end
   end
 
-  def test_accept_header
-    mime = request.preferred_type(mime_to_ext.keys)
+  # If request.preferred_type has no preference, it will prefer the first one. 
+  def preferred_format(default_ext)
+    default_mime = ext_to_mime[default_ext]
+    mime = request.preferred_type([default_mime] + mime_to_ext.keys)
     if mime && mime_to_ext.has_key?(mime)
       mime_to_ext[mime]
     else
-      'ttl'
+      default_ext
     end
   end
 
@@ -88,18 +146,21 @@ helpers do
 
   def display(tokens)
     path = File.expand_path('linked_data.ttl', $files.path_for(tokens[:uri]))
-    @graph = RDF::Graph.new
-    @graph.load(path)
+    graph = RDF::Graph.new
+    graph.load(path)
+    dump_graph(graph, tokens[:format], ld4l_prefixes)
+  end
 
-    case tokens[:format]
+  def dump_graph(graph, format, prefixes)
+    case format
     when 'n3', 'ttl'
-      RDF::Raptor::Turtle::Writer.dump(@graph)
+      RDF::Raptor::Turtle::Writer.dump(graph, nil, :prefixes => prefixes)
     when 'nt'
-      RDF::Raptor::NTriples::Writer.dump(@graph)
+      RDF::Raptor::NTriples::Writer.dump(graph)
     when 'rj'
-      RDF::JSON::Writer.dump(@graph)
+      RDF::JSON::Writer.dump(graph, nil, :prefixes => prefixes)
     else # 'rdf'
-      RDF::RDFXML::Writer.dump(@graph)
+      RDF::RDFXML::Writer.dump(graph, nil, :prefixes => prefixes)
     end
   end
 
