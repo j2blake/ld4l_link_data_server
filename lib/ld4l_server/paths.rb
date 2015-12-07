@@ -121,7 +121,7 @@ helpers do
     end
   end
 
-  # If request.preferred_type has no preference, it will prefer the first one. 
+  # If request.preferred_type has no preference, it will prefer the first one.
   def preferred_format(default_ext)
     default_mime = ext_to_mime[default_ext]
     mime = request.preferred_type([default_mime] + mime_to_ext.keys)
@@ -133,7 +133,12 @@ helpers do
   end
 
   def known_individual(tokens)
-    $files.exists?(tokens[:uri])
+    uri = tokens[:uri]
+    if uri && uri.start_with?($files.prefix)
+      $files.exists?(uri)
+    else
+      false
+    end
   end
 
   def recognized_format(tokens)
@@ -148,9 +153,17 @@ helpers do
     path = File.expand_path('linked_data.ttl', $files.path_for(tokens[:uri]))
     graph = RDF::Graph.new
     graph.load(path)
+    graph << void_triples(tokens)
     dump_graph(graph, tokens[:format], ld4l_prefixes)
   end
-
+  
+  def void_triples(tokens)
+    s = RDF::URI.new(tokens[:uri])
+    p = RDF::URI.new("http://rdfs.org/ns/void#inDataset")
+    o = RDF::URI.new($namespace + tokens[:context].chop)
+    RDF::Statement(s, p, o)
+  end
+  
   def dump_graph(graph, format, prefixes)
     case format
     when 'n3', 'ttl'
