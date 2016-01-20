@@ -26,12 +26,13 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 # ---------------------------------------------------------
 #
 
-require 'pairtree'
 require 'rdf'
 require 'rdf/json'
 require 'rdf/raptor'
 require 'rdf/rdfxml'
 require 'sinatra'
+require 'zlib'
 
+require 'ld4l_server/file_system'
 require 'ld4l_server/process_arguments'
 require 'ld4l_server/paths'

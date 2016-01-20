@@ -15,9 +15,9 @@ def process_arguments(args)
   raise UserInputError.new("#{args[1]} already exists -- specify REPLACE") if File.exist?(args[1]) unless replace_report
   raise UserInputError.new("Can't create #{args[1]}: no parent directory.") unless Dir.exist?(File.dirname(args[1]))
 
-  $files = Pairtree.at(pair_tree_base, :prefix => args[2])
+  $files = Ld4lLinkDataServer::FileSystem.new(pair_tree_base, args[2])
   $report = File.open(File.expand_path(args[1]), 'w')
-  $namespace = args[3]
+  $namespace = args[3] || ''
 end
 
 begin

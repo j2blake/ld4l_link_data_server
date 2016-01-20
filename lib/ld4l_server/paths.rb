@@ -6,7 +6,8 @@ get '/termsOfUse' do
   'Check out the terms of use'
 end
 
-get '/*' do
+# Any request that doesn't start with a _, so __sinatra__500.png (for example) will pass through.
+get /^\/[^_].*/ do
   tokens = parse_request
   #  logger.info ">>>>>>>PARSED #{tokens.inspect}"
   case tokens[:request_type]
@@ -57,7 +58,7 @@ helpers do
       :dcterms => RDF::URI('http://purl.org/dc/terms/') ,
       :fast => RDF::URI('http://id.worldcat.org/fast/') ,
       :foaf => RDF::URI('http://xmlns.com/foaf/0.1/') ,
-      :ld4lbib => RDF::URI('http://ld4l.org/ontology/bib/'),
+      :ld4lbib => RDF::URI('http://bib.ld4l.org/ontology/'),
       :ld4lcornell => RDF::URI('http://draft.ld4l.org/cornell/'),
       :ld4lharvard => RDF::URI('http://draft.ld4l.org/harvard/'),
       :ld4lstanford => RDF::URI('http://draft.ld4l.org/stanford/'),
@@ -134,8 +135,8 @@ helpers do
 
   def known_individual(tokens)
     uri = tokens[:uri]
-    if uri && uri.start_with?($files.prefix)
-      $files.exists?(uri)
+    if uri && $files.acceptable?(uri)
+      $files.exist?(uri)
     else
       false
     end
@@ -150,20 +151,20 @@ helpers do
   end
 
   def display(tokens)
-    path = File.expand_path('linked_data.ttl', $files.path_for(tokens[:uri]))
+    path = $files.path_for(tokens[:uri])
     graph = RDF::Graph.new
     graph.load(path)
     graph << void_triples(tokens)
     dump_graph(graph, tokens[:format], ld4l_prefixes)
   end
-  
+
   def void_triples(tokens)
     s = RDF::URI.new(tokens[:uri])
     p = RDF::URI.new("http://rdfs.org/ns/void#inDataset")
     o = RDF::URI.new($namespace + tokens[:context].chop)
     RDF::Statement(s, p, o)
   end
-  
+
   def dump_graph(graph, format, prefixes)
     case format
     when 'n3', 'ttl'
@@ -172,6 +173,8 @@ helpers do
       RDF::Raptor::NTriples::Writer.dump(graph)
     when 'rj'
       RDF::JSON::Writer.dump(graph, nil, :prefixes => prefixes)
+    when 'html'
+      '<pre>' + RDF::Raptor::Turtle::Writer.dump(graph, nil, :prefixes => prefixes).gsub('<', '&lt;').gsub('>', '&gt;') + '</pre>'
     else # 'rdf'
       RDF::RDFXML::Writer.dump(graph, nil, :prefixes => prefixes)
     end
