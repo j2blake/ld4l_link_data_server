@@ -1,0 +1,174 @@
+<html>
+<head>
+  <style TYPE="text/css">
+    li { 
+      list-style-type: none ; 
+    }
+    li.subjects {
+      margin-top: 3em ;
+      margin-bottom: 3em ;
+    }
+    table.nav {
+      background-color: #EEF ;
+      width: 100% ;
+    }
+    table.nav td {
+      text-align: center ;
+      border: medium solid #888 ;
+    }
+	body {
+		padding-left: 12px;
+	}
+	.btn-container {
+		float: right;
+		margin-right: 40px;
+		margin-top: -40px;
+	}
+	.dropbtn {
+	    background-color: #3498DB;
+		border-color: #258CD1;
+	    color: #fff;
+	    padding: 6px;
+	    font-size: 12px;
+		border: 1px solid transparent;
+	    border-radius: 4px;
+	    cursor: pointer;
+	}
+	.dropdown {
+	    position: relative;
+	    display: inline-block;
+	}
+	.dropdown-content {
+	    display: none;
+	    position: absolute;
+	    background-color: #cdcdcd;
+	    min-width: 120px;
+	    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	}
+	.dropdown-content a {
+	    color: black;
+	    padding: 12px 16px;
+	    text-decoration: none;
+	    display: block;
+	}
+	.dropdown-content a:hover {background-color: #f1f1f1}
+
+	.dropdown:hover .dropdown-content {
+	    display: block;
+	}
+	.dropdown:hover .dropbtn {
+	    background-color: #217DBB;
+		border-color: #1C699D;
+	}
+	#return {
+		margin-left: 20px;
+	}
+	.n3-container {
+		margin-right: 30px;
+		background-color:#efefef;
+		padding: 4px 0 10px 0;
+	}
+  </style> 
+</head>
+<body>
+
+<h1>Wusten, Deiche und Turbinen</h1>
+<h3>Work, Monograph</h3>
+
+<div class="btn-container">
+	<div class="dropdown">
+	  <button class="dropbtn">Export Options</button>
+	  <div class="dropdown-content">
+	    <a href="">N-Triples</a>
+	    <a href="">RDF-XML</a>
+	    <a href="">TTL</a>
+	  </div>
+	</div>
+	<a id="return" href="">Return to Search </a>
+</div>	
+<div class="n3-container">
+<div>
+  <ul>
+    <li class="prefix">
+      @prefix ld4l_bib: &lt;http://bib.ld4l.org/ontology/&gt; .
+    </li>
+    <li class="prefix">
+      @prefix ld4l_cornell: &lt;http://draft.ld4l.org/cornell/&gt; .
+    </li>
+    <li class="prefix">
+      @prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+    </li>
+    <li class="prefix">
+      @prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+    </li>
+  </ul>
+</div>
+
+<div>
+  <ul>
+     <li class='subjects'>
+       <a href="http://draft.ld4l.org/cornell/n10072work72">ld4l_cornell:n10072work72</a>
+       <ul class='predicates'>
+         <li>
+           ld4l_bib:hasContribution
+           <ul class='objects'>
+             <li>
+             	<a href="http://draft.ld4l.org/cornell/n6aa64439-e394-4bbf-b0be-3627331a3263">ld4l_cornell:n6aa64439-e394-4bbf-b0be-3627331a3263</a> ;
+	         </li>
+	       </ul>
+         </li>
+       </ul>
+       <ul class='predicates'>
+         <li>
+           ld4l_bib:hasTitle 
+           <ul class='objects'>
+             <li>
+	           <a href="http://draft.ld4l.org/cornell/ndf69e08d-a709-4a23-a02e-b10feab2a388">ld4l_cornell:ndf69e08d-a709-4a23-a02e-b10feab2a388</a> ;
+	         </li>
+	       </ul>
+         </li>
+         <li>
+           a ld4l_bib:Work ;
+         </li>
+         <li>
+           a ld4l_bib:Monograph .
+         </li>
+       </ul>
+     </li>
+     <li class='subjects'>
+       <a href="http://draft.ld4l.org/cornell/n6aa64439-e394-4bbf-b0be-3627331a3263">ld4l_cornell:n6aa64439-e394-4bbf-b0be-3627331a3263&gt;</a>
+       <ul class='predicates'>
+         <li>
+           a ld4l_bib:Contribution ;
+         </li>
+         <li>
+           rdfs:label
+           <ul class='objects'>
+             <li>
+             	"Contributor" .
+	         </li>
+	       </ul>
+         </li>
+       </ul>
+     </li>
+     <li class='subjects'>
+       <a href="http://draft.ld4l.org/cornell/ndf69e08d-a709-4a23-a02e-b10feab2a388&">ld4l_cornell:ndf69e08d-a709-4a23-a02e-b10feab2a388&&gt;</a>
+       <ul class='predicates'>
+         <li>
+           a &lt;http://www.loc.gov/mads/rdf/v1#Title&gt; ;
+         </li>
+         <li>
+           rdfs:label
+           <ul class='objects'>
+             <li>
+             	"Wusten, Deiche und Turbinen" .
+	         </li>
+	       </ul>
+         </li>
+       </ul>
+     </li>
+  </ul>
+</div>
+</div>
+</body>
+</html>
