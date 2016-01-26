@@ -185,7 +185,7 @@ helpers do
   end
 
   def no_such_individual(tokens)
-    "No such individual #{tokens[:uri]}"
+    "No such individual #{tokens.inspect}, #{$files.path_for(tokens[:uri])}"
   end
 
   def no_such_format(tokens)
