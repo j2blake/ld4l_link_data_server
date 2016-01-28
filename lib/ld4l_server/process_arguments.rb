@@ -2,22 +2,21 @@
 class UserInputError < StandardError
 end
 
-USAGE_TEXT = 'Usage: ld4l_run_link_data_server <target_dir> <report_file> <pairtree_prefix> [namespace] [REPLACE]'
+USAGE_TEXT = 'Usage: ld4l_run_link_data_server <target_dir> <report_file> <uri_prefix> [REPLACE]'
 
 def process_arguments(args)
   replace_report = args.delete('REPLACE')
 
-  raise UserInputError.new(USAGE_TEXT) unless args && (3..4).include?(args.size)
+  raise UserInputError.new(USAGE_TEXT) unless args && args.size == 3
 
-  pair_tree_base = File.expand_path(args[0])
-  raise UserInputError.new("Target directory doesn't exist: #{pair_tree_base}") unless Dir.exist?(pair_tree_base)
+  files_base = File.expand_path(args[0])
+  raise UserInputError.new("Target directory doesn't exist: #{files_base}") unless Dir.exist?(files_base)
 
   raise UserInputError.new("#{args[1]} already exists -- specify REPLACE") if File.exist?(args[1]) unless replace_report
   raise UserInputError.new("Can't create #{args[1]}: no parent directory.") unless Dir.exist?(File.dirname(args[1]))
 
-  $files = Ld4lLinkDataServer::FileSystem.new(pair_tree_base, args[2])
+  $files = Ld4lLinkDataServer::FileSystem.new(files_base, args[2])
   $report = File.open(File.expand_path(args[1]), 'w')
-  $namespace = args[3] || ''
 end
 
 begin

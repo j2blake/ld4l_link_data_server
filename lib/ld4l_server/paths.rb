@@ -105,7 +105,7 @@ helpers do
       tokens = {:localname => request.path.sub(%r{^/}, '')}
     end
 
-    tokens[:uri] = "%s%s%s" % [$namespace, tokens[:context], tokens[:localname]]
+    tokens[:uri] = "%s%s%s" % ['http://draft.ld4l.org/', tokens[:context], tokens[:localname]]
 
     if known_individual(tokens)
       if tokens[:format]

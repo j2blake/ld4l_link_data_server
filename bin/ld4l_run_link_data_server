@@ -12,8 +12,8 @@ context path.
 
 --------------------------------------------------------------------------------
 
-Usage:   ld4l_create_lod_files <target_dir> <report_file> <pairtree_prefix> [namespace] [REPLACE]
-Example: ld4l_create_lod_files files report.txt http://draft.ld4l.org/ http://draft.ld4l.org/ [REPLACE]
+Usage:   ld4l_create_lod_files <target_dir> <report_file> <pairtree_prefix> [REPLACE]
+Example: ld4l_create_lod_files files report.txt http://draft.ld4l.org/ [REPLACE]
 
 --------------------------------------------------------------------------------
 =end
@@ -32,7 +32,9 @@ require 'rdf/raptor'
 require 'rdf/rdfxml'
 require 'sinatra'
 require 'zlib'
+require 'tilt/erubis'
 
 require 'ld4l_server/file_system'
+require 'ld4l_server/html_digester'
 require 'ld4l_server/process_arguments'
 require 'ld4l_server/paths'
