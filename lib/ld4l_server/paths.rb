@@ -147,7 +147,7 @@ helpers do
   end
 
   def url_to_display(tokens)
-    "%s/%s.%s" % tokens.values_at(:context, :localname, :format)
+    "%s%s.%s" % tokens.values_at(:context, :localname, :format)
   end
 
   def display(tokens)
@@ -161,7 +161,7 @@ helpers do
   def void_triples(tokens)
     s = RDF::URI.new(tokens[:uri])
     p = RDF::URI.new("http://rdfs.org/ns/void#inDataset")
-    o = RDF::URI.new($namespace + tokens[:context].chop)
+    o = RDF::URI.new('http://draft.ld4l.org/' + tokens[:context].chop)
     RDF::Statement(s, p, o)
   end
 
