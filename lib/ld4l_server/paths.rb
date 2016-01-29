@@ -159,7 +159,13 @@ helpers do
   end
 
   def void_triples(tokens)
-    s = RDF::URI.new(tokens[:uri])
+    # This legerdemain should not be required. Figure it out and fix it RSN.
+    uri = if tokens[:uri].start_with?'http:'
+      tokens[:uri]
+    else
+      'http://draft.ld4l.org/' + tokens[:uri]
+    end 
+    s = RDF::URI.new(uri)
     p = RDF::URI.new("http://rdfs.org/ns/void#inDataset")
     o = RDF::URI.new('http://draft.ld4l.org/' + tokens[:context].chop)
     RDF::Statement(s, p, o)

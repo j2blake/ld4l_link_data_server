@@ -35,6 +35,6 @@ require 'zlib'
 require 'tilt/erubis'
 
 require 'ld4l_server/file_system'
-require 'ld4l_server/html_digester'
+#require 'ld4l_server/html_digester'
 require 'ld4l_server/process_arguments'
 require 'ld4l_server/paths'
