@@ -54,7 +54,7 @@ helpers do
 
   def ld4l_prefixes
     {
-      :annot => RDF::URI('http://www.w3.org/ns/oa#'),
+      :oa => RDF::URI('http://www.w3.org/ns/oa#'),
       :dcterms => RDF::URI('http://purl.org/dc/terms/') ,
       :fast => RDF::URI('http://id.worldcat.org/fast/') ,
       :foaf => RDF::URI('http://xmlns.com/foaf/0.1/') ,
@@ -63,7 +63,7 @@ helpers do
       :ld4lharvard => RDF::URI('http://draft.ld4l.org/harvard/'),
       :ld4lstanford => RDF::URI('http://draft.ld4l.org/stanford/'),
       :locclass => RDF::URI('http://id.loc.gov/authorities/classification/'),
-      :mads => RDF::URI('http://www.loc.gov/mads/rdf/v1#'),
+      :madsrdf => RDF::URI('http://www.loc.gov/mads/rdf/v1#'),
       :owl => RDF::URI('http://www.w3.org/2002/07/owl#'),
       :oclc => RDF::URI('http://www.worldcat.org/oclc/'),
       :prov => RDF::URI('http://www.w3.org/ns/prov#'),
