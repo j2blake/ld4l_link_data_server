@@ -54,22 +54,22 @@ helpers do
 
   def ld4l_prefixes
     {
-      :oa => RDF::URI('http://www.w3.org/ns/oa#'),
       :dcterms => RDF::URI('http://purl.org/dc/terms/') ,
       :fast => RDF::URI('http://id.worldcat.org/fast/') ,
       :foaf => RDF::URI('http://xmlns.com/foaf/0.1/') ,
-      :ld4lbib => RDF::URI('http://bib.ld4l.org/ontology/'),
+      :ld4l => RDF::URI('http://bib.ld4l.org/ontology/'),
       :ld4lcornell => RDF::URI('http://draft.ld4l.org/cornell/'),
       :ld4lharvard => RDF::URI('http://draft.ld4l.org/harvard/'),
       :ld4lstanford => RDF::URI('http://draft.ld4l.org/stanford/'),
       :locclass => RDF::URI('http://id.loc.gov/authorities/classification/'),
       :madsrdf => RDF::URI('http://www.loc.gov/mads/rdf/v1#'),
+      :oa => RDF::URI('http://www.w3.org/ns/oa#'),
       :owl => RDF::URI('http://www.w3.org/2002/07/owl#'),
-      :oclc => RDF::URI('http://www.worldcat.org/oclc/'),
       :prov => RDF::URI('http://www.w3.org/ns/prov#'),
       :rdfs => RDF::URI('http://www.w3.org/2000/01/rdf-schema#') ,
       :skos => RDF::URI('http://www.w3.org/2004/02/skos/core#') ,
       :void => RDF::URI('http://rdfs.org/ns/void#'),
+      :worldcat => RDF::URI('http://www.worldcat.org/oclc/'),
     }
   end
 
