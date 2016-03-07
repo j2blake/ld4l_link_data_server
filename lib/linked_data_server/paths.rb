@@ -151,9 +151,8 @@ helpers do
   end
 
   def display(tokens)
-    path = $files.path_for(tokens[:uri])
-    graph = RDF::Graph.new
-    graph.load(path)
+    contents = $files.read(tokens[:uri])
+    graph = RDF::Graph.new << RDF::Reader.for(:turtle).new(contents)
     graph << void_triples(tokens)
     dump_graph(graph, tokens[:format], ld4l_prefixes)
   end

@@ -5,7 +5,7 @@ require 'rdf/rdfxml'
 require 'zlib'
 require 'tilt/erubis'
 
-require 'linked_data_server/file_system'
+require 'linked_data_server/file_systems'
 require 'linked_data_server/process_arguments'
 require 'linked_data_server/paths'
 

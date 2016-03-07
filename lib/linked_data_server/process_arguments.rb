@@ -15,7 +15,7 @@ def process_arguments(args)
   raise UserInputError.new("#{args[1]} already exists -- specify REPLACE") if File.exist?(args[1]) unless replace_report
   raise UserInputError.new("Can't create #{args[1]}: no parent directory.") unless Dir.exist?(File.dirname(args[1]))
 
-  $files = LinkedDataServer::FileSystem.new(files_base, args[2])
+  $files = Ld4lBrowserData::Utilities::FileSystems::MySqlZipFS.new(:username => 'ld4luser', :password => 'ld4lpass')
   $report = File.open(File.expand_path(args[1]), 'w')
 end
 
