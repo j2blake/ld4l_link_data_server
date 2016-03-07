@@ -1,7 +1,7 @@
 require 'rdf'
 require 'rdf/json'
-require 'rdf/raptor'
 require 'rdf/rdfxml'
+require 'rdf/turtle'
 require 'zlib'
 require 'tilt/erubis'
 

@@ -175,13 +175,13 @@ helpers do
   def build_the_output(graph, format, prefixes)
     case format
     when 'n3', 'ttl'
-      RDF::Raptor::Turtle::Writer.dump(graph, nil, :prefixes => prefixes)
+      RDF::Writer.for(:turtle).dump(graph, nil, :prefixes => prefixes)
     when 'nt'
-      RDF::Raptor::NTriples::Writer.dump(graph)
+      RDF::Writer.for(:ntriples).dump(graph)
     when 'rj'
       RDF::JSON::Writer.dump(graph, nil, :prefixes => prefixes)
     when 'html'
-      '<pre>' + RDF::Raptor::Turtle::Writer.dump(graph, nil, :prefixes => prefixes).gsub('<', '&lt;').gsub('>', '&gt;') + '</pre>'
+      '<pre>' + RDF::Writer.for(:turtle).dump(graph, nil, :prefixes => prefixes).gsub('<', '&lt;').gsub('>', '&gt;') + '</pre>'
     else # 'rdf'
       RDF::RDFXML::Writer.dump(graph, nil, :prefixes => prefixes)
     end
