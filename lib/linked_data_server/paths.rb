@@ -1,31 +1,78 @@
-get %r{^/(cornell|stanford|harvard)?$} do |univ|
-  show_home_page(univ)
-end
-
-get '/termsOfUse' do
-  'Check out the terms of use'
-end
-
 # Any request that doesn't start with a _, so __sinatra__500.png (for example) will pass through.
-get /^\/[^_].*/ do
-  tokens = parse_request
-  #  logger.info ">>>>>>>PARSED #{tokens.inspect}"
-  case tokens[:request_type]
-  when :uri
-    headers 'Vary' => 'Accept'
-    redirect url_to_display(tokens), 303
-  when :display_url
-    [200, create_headers(tokens), display(tokens)]
-  when :no_such_individual
-    [404, no_such_individual(tokens)]
-  when :no_such_format
-    [404, no_such_format(tokens)]
-  else
-    [404, "BAD REQUEST: #{request.path} ==> #{tokens.inspect}"]
-  end
+get /^\/$/ do
+  process_it
+end
+
+get /^\/[^_]/ do
+  process_it
 end
 
 helpers do
+  def process_it
+    tokens = parse_request
+    #  logger.info ">>>>>>>PARSED #{tokens.inspect}"
+    case tokens[:request_type]
+    when :uri
+      headers 'Vary' => 'Accept'
+      redirect url_to_display(tokens), 303
+    when :display_url
+      [200, create_headers(tokens), display(tokens)]
+    when :no_such_individual
+      [404, no_such_individual(tokens)]
+    when :no_such_format
+      [404, no_such_format(tokens)]
+    else
+      [404, "BAD REQUEST: #{request.path} ==> #{tokens.inspect}"]
+    end
+  end
+
+  def parse_request
+    path = request.path
+    path, format = parse_format(path)
+    path, localname = parse_localname(path)
+    context = parse_context(path)
+    uri = assemble_uri(context, localname)
+    tokens = {context: context, localname: localname, format: format, uri: uri}
+
+    return tokens.merge(request_type: :no_such_individual) unless known_individual(tokens)
+    return tokens.merge(request_type: :uri, format: preferred_format) if format.empty?
+    return tokens.merge(request_type: :no_such_format) unless recognized_format(format)
+    return tokens.merge(request_type: :display_url)
+  end
+
+  def parse_format(path)
+    # format appears after the last period.
+    remainder, dot, format = path.rpartition('.')
+    return [path, ''] if dot.empty?
+    return [remainder, format]
+  end
+
+  def parse_localname(path)
+    # localname appears after the second slash
+    remainder, slash, localname = path.rpartition('/')
+    return [path, ''] unless remainder.index('/')
+    return [remainder, localname]
+  end
+
+  def parse_context(path)
+    path.chop! if path[-1] == '/'
+    if path =~ %r{^/(.+)$}
+      $1
+    else
+      ''
+    end
+  end
+
+  def assemble_uri(context, localname)
+    if context.empty?
+      'http://draft.ld4l.org/'
+    elsif localname.empty?
+      "%s%s" % ['http://draft.ld4l.org/', context]
+    else
+      "%s%s/%s" % ['http://draft.ld4l.org/', context, localname]
+    end
+  end
+
   def ext_to_mime
     {
       'html' => 'text/html',
@@ -41,19 +88,9 @@ helpers do
     ext_to_mime.invert
   end
 
-  def void_prefixes
+  def prefixes
     {
       ''.to_sym => RDF::URI('http://draft.ld4l.org/') ,
-      :dcterms => RDF::URI('http://purl.org/dc/terms/') ,
-      :foaf => RDF::URI('http://xmlns.com/foaf/0.1/') ,
-      :rdfs => RDF::URI('http://www.w3.org/2000/01/rdf-schema#') ,
-      :void => RDF::URI('http://rdfs.org/ns/void#') ,
-      :xsd => RDF::URI('http://www.w3.org/2001/XMLSchema#') ,
-    }
-  end
-
-  def ld4l_prefixes
-    {
       :dcterms => RDF::URI('http://purl.org/dc/terms/') ,
       :fast => RDF::URI('http://id.worldcat.org/fast/') ,
       :foaf => RDF::URI('http://xmlns.com/foaf/0.1/') ,
@@ -70,61 +107,26 @@ helpers do
       :skos => RDF::URI('http://www.w3.org/2004/02/skos/core#') ,
       :void => RDF::URI('http://rdfs.org/ns/void#'),
       :worldcat => RDF::URI('http://www.worldcat.org/oclc/'),
+      :xsd => RDF::URI('http://www.w3.org/2001/XMLSchema#') ,
     }
   end
 
-  def show_home_page(univ)
-    graph = get_void_graph(univ)
-    mime_ext = preferred_format('html')
-    if mime_ext == 'html'
-      merge_graph_into_home_page_template(univ, graph)
-    else
-      dump_graph(graph, mime_ext, void_prefixes)
-    end
-  end
-
-  def get_void_graph(univ)
-    filename = univ ? ("void_#{univ}.ttl") : "void.ttl"
-    path = File.expand_path(filename, $files.path)
-    graph = RDF::Graph.new
-    graph.load(path)
-    graph
-  end
-
-  def merge_graph_into_home_page_template(univ, graph)
-    template = univ ? "dataset_#{univ}".to_sym : :dataset
+  def merge_graph_into_template(tokens, graph)
+    template = choose_template(tokens)
     erb template, :locals => {:graph => graph.to_hash}
   end
 
-  def parse_request
-    if request.path =~ %r{^/([^/]+/)?([^/]+)\.(\w+)$} # /context/localname.format
-      tokens = {:context => $1, :localname => $2, :format => $3}
-    elsif request.path =~ %r{^/([^/]+/)?([^/]+)$} # /context/localname
-      tokens = {:context => $1, :localname => $2}
+  def choose_template(tokens)
+    if tokens[:localname].empty?
+      "dataset_#{tokens[:context]}"
     else
-      tokens = {:localname => request.path.sub(%r{^/}, '')}
-    end
-
-    tokens[:uri] = "%s%s%s" % ['http://draft.ld4l.org/', tokens[:context], tokens[:localname]]
-
-    if known_individual(tokens)
-      if tokens[:format]
-        if recognized_format(tokens)
-          return tokens.merge(:request_type => :display_url)
-        else
-          return tokens.merge(:request_type => :no_such_format)
-        end
-      else
-        return tokens.merge(:request_type => :uri, :format => preferred_format('ttl'))
-      end
-    else
-      return tokens.merge(:request_type => :no_such_individual)
+      "default"
     end
   end
 
   # If request.preferred_type has no preference, it will prefer the first one.
-  def preferred_format(default_ext)
-    default_mime = ext_to_mime[default_ext]
+  def preferred_format()
+    default_mime = ext_to_mime['ttl']
     mime = request.preferred_type([default_mime] + mime_to_ext.keys)
     if mime && mime_to_ext.has_key?(mime)
       mime_to_ext[mime]
@@ -135,42 +137,42 @@ helpers do
 
   def known_individual(tokens)
     uri = tokens[:uri]
-    if uri && $files.acceptable?(uri)
+    if $files.acceptable?(uri)
       $files.exist?(uri)
     else
       false
     end
   end
 
-  def recognized_format(tokens)
-    ext_to_mime.has_key?(tokens[:format])
+  def recognized_format(format)
+    ext_to_mime.has_key?(format)
   end
 
   def url_to_display(tokens)
-    "%s%s.%s" % tokens.values_at(:context, :localname, :format)
+    if tokens[:context].empty?
+      "%s.%s" % tokens.values_at(:localname, :format)
+    elsif tokens[:localname].empty?
+      "%s.%s" % tokens.values_at(:context, :format)
+    else
+      "%s/%s.%s" % tokens.values_at(:context, :localname, :format)
+    end
   end
 
   def display(tokens)
     contents = $files.read(tokens[:uri])
     graph = RDF::Graph.new << RDF::Reader.for(:turtle).new(contents)
     graph << void_triples(tokens)
-    dump_graph(graph, tokens[:format], ld4l_prefixes)
+    build_the_output(graph, tokens[:format], prefixes)
   end
 
   def void_triples(tokens)
-    # This legerdemain should not be required. Figure it out and fix it RSN.
-    uri = if tokens[:uri].start_with?'http:'
-      tokens[:uri]
-    else
-      'http://draft.ld4l.org/' + tokens[:uri]
-    end 
-    s = RDF::URI.new(uri)
+    s = RDF::URI.new(tokens[:uri])
     p = RDF::URI.new("http://rdfs.org/ns/void#inDataset")
-    o = RDF::URI.new('http://draft.ld4l.org/' + tokens[:context].chop)
+    o = RDF::URI.new('http://draft.ld4l.org/' + tokens[:context])
     RDF::Statement(s, p, o)
   end
 
-  def dump_graph(graph, format, prefixes)
+  def build_the_output(graph, format, prefixes)
     case format
     when 'n3', 'ttl'
       RDF::Raptor::Turtle::Writer.dump(graph, nil, :prefixes => prefixes)
@@ -190,10 +192,11 @@ helpers do
   end
 
   def no_such_individual(tokens)
-    "No such individual #{tokens.inspect}, #{$files.path_for(tokens[:uri])}"
+    "No such individual #{tokens.inspect}"
   end
 
   def no_such_format(tokens)
     "No such format #{tokens[:format]}"
   end
 end
+
