@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Ld4lLinkDataServer do
+describe LinkedDataServer do
   it 'has a version number' do
-    expect(Ld4lLinkDataServer::VERSION).not_to be nil
+    expect(LinkedDataServer::VERSION).not_to be nil
   end
 
   it 'does something useful' do

@@ -1,4 +1,4 @@
-module Ld4lLinkDataServer
+module LinkedDataServer
   class FileSystem
     def initialize(root_dir, prefix)
       @root_dir = root_dir

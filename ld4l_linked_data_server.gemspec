@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'ld4l_link_data_server/version'
+require 'linked_data_server/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "ld4l_link_data_server"
-  spec.version       = Ld4lLinkDataServer::VERSION
+  spec.name          = "linked_data_server"
+  spec.version       = LinkedDataServer::VERSION
   spec.authors       = ["Jim Blake"]
   spec.email         = ["jeb228@cornell.edu"]
 
@@ -30,7 +30,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec"
 
-  spec.add_runtime_dependency "pairtree"
   spec.add_runtime_dependency "rdf"
   spec.add_runtime_dependency "rdf-raptor"
   spec.add_runtime_dependency "sinatra"
