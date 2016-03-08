@@ -113,14 +113,14 @@ helpers do
 
   def merge_graph_into_template(tokens, graph)
     template = choose_template(tokens)
-    erb template, :locals => {:graph => graph.to_hash}
+    erb template.to_sym, :locals => {:graph => graph, :graph_hash => graph.to_hash, :prefixes => prefixes}
   end
 
   def choose_template(tokens)
     if tokens[:localname].empty?
       "dataset_#{tokens[:context]}"
     else
-      "default"
+      "standard"
     end
   end
 
@@ -162,7 +162,7 @@ helpers do
     contents = $files.read(tokens[:uri])
     graph = RDF::Graph.new << RDF::Reader.for(:turtle).new(contents)
     graph << void_triples(tokens)
-    build_the_output(graph, tokens[:format], prefixes)
+    build_the_output(graph, tokens, prefixes)
   end
 
   def void_triples(tokens)
@@ -172,7 +172,8 @@ helpers do
     RDF::Statement(s, p, o)
   end
 
-  def build_the_output(graph, format, prefixes)
+  def build_the_output(graph, tokens, prefixes)
+    format = tokens[:format]
     case format
     when 'n3', 'ttl'
       RDF::Writer.for(:turtle).dump(graph, nil, :prefixes => prefixes)
@@ -181,7 +182,7 @@ helpers do
     when 'rj'
       RDF::JSON::Writer.dump(graph, nil, :prefixes => prefixes)
     when 'html'
-      '<pre>' + RDF::Writer.for(:turtle).dump(graph, nil, :prefixes => prefixes).gsub('<', '&lt;').gsub('>', '&gt;') + '</pre>'
+      merge_graph_into_template(tokens, graph)
     else # 'rdf'
       RDF::RDFXML::Writer.dump(graph, nil, :prefixes => prefixes)
     end
