@@ -9,20 +9,24 @@ end
 
 helpers do
   def process_it
-    tokens = parse_request
-    #  logger.info ">>>>>>>PARSED #{tokens.inspect}"
-    case tokens[:request_type]
-    when :uri
-      headers 'Vary' => 'Accept'
-      redirect url_to_display(tokens), 303
-    when :display_url
-      [200, create_headers(tokens), display(tokens)]
-    when :no_such_individual
-      [404, no_such_individual(tokens)]
-    when :no_such_format
-      [404, no_such_format(tokens)]
-    else
-      [404, "BAD REQUEST: #{request.path} ==> #{tokens.inspect}"]
+    begin
+      tokens = parse_request
+      #  logger.info ">>>>>>>PARSED #{tokens.inspect}"
+      case tokens[:request_type]
+      when :uri
+        headers 'Vary' => 'Accept'
+        redirect url_to_display(tokens), 303
+      when :display_url
+        [200, create_headers(tokens), display(tokens)]
+      when :no_such_individual
+        [404, no_such_individual(tokens)]
+      when :no_such_format
+        [404, no_such_format(tokens)]
+      else
+        [404, "BAD REQUEST: #{request.path} ==> #{tokens.inspect}"]
+      end
+    rescue
+      [500, internal_server_error(request, $!)]
     end
   end
 
@@ -198,6 +202,17 @@ helpers do
 
   def no_such_format(tokens)
     "No such format #{tokens[:format]}"
+  end
+
+  def internal_server_error(request, ex)
+    logit "Internal server error: #{request.path}"
+    logit ex
+    logit ex.backtrace.join("\n")
+    "Internal server error."
+  end
+  
+  def logit(message)
+    puts "#{Time.new.strftime('%Y-%m-%d %H:%M:%S')} #{message}"
   end
 end
 
