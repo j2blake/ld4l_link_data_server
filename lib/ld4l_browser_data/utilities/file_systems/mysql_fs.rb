@@ -14,7 +14,6 @@ module Ld4lBrowserData
         def initialize(params)
           @settings = DEFAULT_PARAMS.merge(params)
           @client = Mysql2::Client.new(@settings)
-          @read_statement = @client.prepare('SELECT rdf FROM lod WHERE uri = ?')
           @insert_statement = @client.prepare('INSERT INTO lod SET uri = ?, rdf = ?')
           @update_statement = @client.prepare('INSERT INTO lod SET uri = ?, rdf = ? ON DUPLICATE KEY UPDATE rdf = ?')
         end
@@ -39,9 +38,9 @@ module Ld4lBrowserData
         end
 
         def exist?(uri)
-          true && @read_statement.execute(uri).first
+          true && get_rdf_for_uri(uri)
         end
-        
+
         def exists?(uri)
           exist?(uri)
         end
@@ -51,14 +50,9 @@ module Ld4lBrowserData
         end
 
         def select(uri)
-          row = @read_statement.execute(uri).first
-          if row
-            row['rdf']
-          else
-            nil
-          end
+          get_rdf_for_uri(uri)
         end
-        
+
         def write(uri, contents)
           insert(uri, contents)
         end
@@ -74,7 +68,22 @@ module Ld4lBrowserData
         def close()
           @client.close
         end
+
+        def get_rdf_for_uri(uri)
+          client = Mysql2::Client.new(@settings)
+          read_statement = client.prepare('SELECT rdf FROM lod WHERE uri = ?')
+          row = read_statement.execute(uri).first
+          if row
+            row['rdf']
+          else
+            nil
+          end
+        end
       end
     end
   end
 end
+=begin
+This is sloppy. I should convert the insert and update to use a fresh client each time, like the read now does.
+On the other hand, I haven't had any problem with the insert and update (OR HAVE I?)
+=end
