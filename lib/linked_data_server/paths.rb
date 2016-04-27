@@ -1,9 +1,16 @@
-# Any request that doesn't start with a _, so __sinatra__500.png (for example) will pass through.
-get /^\/$/ do
+# Serve the home page.
+get '/' do
   process_it
 end
 
-get /^\/[^_]/ do
+# In the downloads directory and sub-directories, use "index.html" as the default page.
+get '/downloads*/' do |dirs|
+  redirect "/downloads#{dirs}/index.html"
+end
+
+# Serve any request that doesn't start with a '_' or a 'd', so special pages
+# (like __sinatra__500.png) will pass through, and so will /downloads.
+get /^\/[^_d]/ do
   process_it
 end
 
